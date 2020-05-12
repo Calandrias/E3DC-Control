@@ -10,6 +10,7 @@
 #include "AES.h"
 #include <time.h>
 #include "E3DC_CONF.h"
+#include "Restcall.h"
 
 #define AES_KEY_SIZE        32
 #define AES_BLOCK_SIZE      32
@@ -300,6 +301,8 @@ bool GetConfig()
 
 
             while (fgets(line, sizeof(line), fp)) {
+
+	      //  printf("line%s\n",line);
                 memset(var, 0, sizeof(var));
                 memset(value, 0, sizeof(value));
                 if(sscanf(line, "%[^ \t=]%*[\t ]=%*[\t ]%[^\n]", var, value) == 2) {
@@ -339,10 +342,7 @@ bool GetConfig()
                         strcpy(e3dc_config.logfile, value);
                     else if((strcmp(var, "debug") == 0)&&
                             (strcmp(value, "true") == 0))
-                    {e3dc_config.debug = true;
-
-                        
-                    }
+                        e3dc_config.debug = true;
                     else if(strcmp(var, "untererLadekorridor") == 0)
                         e3dc_config.untererLadekorridor = atoi(value);
                     else if(strcmp(var, "obererLadekorridor") == 0)
@@ -391,9 +391,9 @@ bool GetConfig()
 
                 }
             }
-    //        printf("e3dc_user %s\n",e3dc_config.e3dc_user);
-    //        printf("e3dc_password %s\n",e3dc_config.e3dc_password);
-    //        printf("aes_password %s\n",e3dc_config.aes_password);
+            printf("e3dc_user %s\n",e3dc_config.e3dc_user);
+            printf("e3dc_password %s\n",e3dc_config.e3dc_password);
+            printf("aes_password %s\n",e3dc_config.aes_password);
             fclose(fp);
         }
 
@@ -437,10 +437,10 @@ int LoadDataProcess(SRscpFrameBuffer * frameBuffer) {
     {
         if (CheckConfig()) // Config-Datei hat sich geändert;
         {
-//            printf("Config geändert");
+            printf("Config geändert");
             GetConfig();
             bCheckConfig = true;
-//            printf("Config neu eingelesen");
+            printf("Config neu eingelesen");
         }
             t_config = tE3DC;
     }

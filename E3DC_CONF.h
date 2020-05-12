@@ -13,7 +13,7 @@
 #endif /* E3DC_CONF_h */
 // Konfigurationsdatei
 #define CONF_FILE "e3dc.config.txt"
-#define CONF_PATH "/Users/eberhardmayer/Documents/E3DC/"
+#define CONF_PATH "/opt/e3dc/E3DC-Control"
 #define OPENWB "localhost"
 
 #define WURZELZAEHLER 0;     // 0 = interner Zähler 6 = externer Zähler
@@ -25,9 +25,9 @@
 #define OBERERLADEKORRIDOR  1500 // oberere Ladeleistung liegen, jedoch
 #define MINIMUMLADELEISTUNG  500 // immer > MINIMUMLADELEISTUNG
 #define MAXIMUMLADELEISTUNG 3000 // maximale Ladeleistung
-#define WRLEISTUNG 12000 // maximale Ladeleistung
+#define WRLEISTUNG 9000 // maximale Ladeleistung
 
-#define SPEICHERGROESSE 13.8 // nutzbare Kapazität des S10 Speichers
+#define SPEICHERGROESSE 5.8 // nutzbare Kapazität des S10 Speichers
 #define WINTERMINIMUM   11.5 // Uhrzeit (als Dezimalwert) bis zu dieser Uhrzeit wird das Laden überwacht
 #define SOMMERMAXIMUM   14.5 // alle Zeiten in GMT = MEZ Winterzeit - 1
 #define SOMMERLADEENDE  18.5 // alle Zeiten in GMT = MEZ Winterzeit - 1
