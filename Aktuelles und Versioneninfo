@@ -1,7 +1,27 @@
+Version 2020.5.11.0
+
+die Änderungen aus 2020.5.9.1 wurden entfernt.
+Statt dessen ist es möglich, über einen runtimeparameter beim starten des Programmes als argument
+eine eigene configurationsdatei anzugeben. Es kann der relative oder absolute path mit angegeben werden.
+
+Beispiel:
+
+E3DC-Control -config /config/E3DC/e3dc.config.txt
+
+Version 2020.5.9.1
+
+neuer pfad für e3dc.config.txt 
+#define CONF_PATH2 "/config/E3DC/"
+
+Version 2020.5.9.0
+
+die letzte Änderung ging zu weit, sie ließ nur unload bis auf ladeende2 zu.
+Ansonsten einige kosmetische Korrekturen
+
 Version 2020.5.6.1
 
 es wird bis zum Zeitpunkt winterminimum entladen wenn der SoC > ladeende ist.
-Danach wird bis zum Regelzeitraumende nur entladen, wenn der SoC > ladeende 2 ist. 
+Danach wird bis zum Regelzeitraumende nur entladen, wenn der SoC > ladeende2 ist. 
 
 
 
