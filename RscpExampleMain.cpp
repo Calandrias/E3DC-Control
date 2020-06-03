@@ -10,7 +10,10 @@
 #include "AES.h"
 #include <time.h>
 #include "E3DC_CONF.h"
-#include "Restcall.h"
+
+
+//BIRO
+#include "OpenhabPub.h"
 
 #define AES_KEY_SIZE        32
 #define AES_BLOCK_SIZE      32
@@ -57,6 +60,11 @@ static int32_t iE3DC_Req_Load,iE3DC_Req_Load_alt; // Leistung, mit der der E3DC-
 FILE * pFile;
 e3dc_config_t e3dc_config;
 char Log[300];
+
+//BIRO create openhab object
+Openhab_pub openhab;
+
+
 
 int WriteLog()
 {
@@ -1219,11 +1227,15 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
         printf("EMS PV %i", iPower);
         iPower_PV = iPower;
         iPower_PV_E3DC = iPower;
+        //BIRO
+        openhab.updatevalue("EMS","P_PV",(float)iPower);
         break;
     }
     case TAG_EMS_POWER_BAT: {    // response for TAG_EMS_REQ_POWER_BAT
         iPower_Bat = protocol->getValueAsInt32(response);
         printf(" BAT %i", iPower_Bat);
+        //BIRO
+        openhab.updatevalue("EMS","P_BAT",(float)iPower_Bat);
         break;
     }
     case TAG_EMS_POWER_HOME: {    // response for TAG_EMS_REQ_POWER_HOME
@@ -1231,7 +1243,8 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
         printf(" home %i", iPower2);
         iPowerBalance = iPower2;
         iPowerHome = iPower2;
-
+        //BIRO
+        openhab.updatevalue("EMS","P_HOME",(float)iPower2);
         break;
     }
     case TAG_EMS_POWER_GRID: {    // response for TAG_EMS_REQ_POWER_GRID
@@ -1240,6 +1253,8 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
         printf(" grid %i", iPower);
         printf(" E3DC %i ", -iPowerBalance - int(fPower_WB));
         printf(" # %i\n", iPower_PV - iPower_Bat + iPower - int(fPower_WB));
+        //BIRO
+        openhab.updatevalue("EMS","P_GRID",(float)iPower);
         break;
     }
     case TAG_EMS_POWER_ADD: {    // response for TAG_EMS_REQ_POWER_ADD
@@ -1341,10 +1356,14 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                     case TAG_PM_POWER_L1: {              // response for TAG_PM_REQ_L1
                         fPower1 = protocol->getValueAsDouble64(&PMData[i]);
                         printf("#%u is %0.1f W ", ucPMIndex,fPower1);
+                        //BIRO
+                        openhab.updatevalue("PM","P_L1",(float)fPower1);
                         break;
                     }
                     case TAG_PM_POWER_L2: {              // response for TAG_PM_REQ_L2
                         fPower2 = protocol->getValueAsDouble64(&PMData[i]);
+                        //BIRO
+                        openhab.updatevalue("PM","P_L2",(float)fPower2);
                         break;
                     }
                     case TAG_PM_POWER_L3: {              // response for TAG_PM_REQ_L3
@@ -1375,7 +1394,10 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                                 fAvPower_Grid = fAvPower_Grid3600; else
                             fAvPower_Grid = fAvPower_Grid*19/20 + fPower_Grid/20;
                             printf(" & %0.01f %0.01f %0.01f %0.01f W ", fAvPower_Grid3600, fAvPower_Grid600, fAvPower_Grid60, fAvPower_Grid);
-                    }
+                            
+                        }
+                        //BIRO
+                        openhab.updatevalue("PM","P_L3",(float)fPower3);
                         break;
                     }
                     case TAG_PM_VOLTAGE_L1: {              // response for TAG_PM_REQ_L1
@@ -1384,7 +1406,8 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                         fL1V = fPower;
                         sprintf(buffer,"openWB/set/evu/VPhase1 -m %0.1f",float(fPower));
                         MQTTsend(buffer);
-
+                        //BIRO
+                        openhab.updatevalue("PM","U_L1",(float)fPower);
                         break;
                     }
                     case TAG_PM_VOLTAGE_L2: {              // response for TAG_PM_REQ_L2
@@ -1393,6 +1416,8 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                         fL2V = fPower;
                         sprintf(buffer,"openWB/set/evu/VPhase2 -m %0.1f",float(fPower));
                         MQTTsend(buffer);
+                        //BIRO
+                        openhab.updatevalue("PM","U_L2",(float)fPower);
                         break;
                     }
                     case TAG_PM_VOLTAGE_L3: {              // response for TAG_PM_REQ_L3
@@ -1401,6 +1426,8 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                         fL3V = fPower;
                         sprintf(buffer,"openWB/set/evu/VPhase3 -m %0.1f",float(fPower));
                         MQTTsend(buffer);
+                        //BIRO
+                        openhab.updatevalue("PM","U_L3",(float)fPower);
                         break;
                     }
                         // ...
@@ -1444,7 +1471,10 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                             {
                                 float fPower = protocol->getValueAsFloat32(&container[n]);
                                 printf("DC%u %0.0f W ", index, fPower);
-
+                                //BIRO
+                                char lb[5];
+                                sprintf(lb,"P_DC%u",index);
+                                openhab.updatevalue("PVI",lb,(float)fPower);
                             }
                         }
                         protocol->destroyValueData(container);
@@ -1464,7 +1494,10 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                             {
                                 float fPower = protocol->getValueAsFloat32(&container[n]);
                                 printf(" %0.0f V", fPower);
-                                
+                                //BIRO
+                                char lb[5];
+                                sprintf(lb,"U_DC%u",index);
+                                openhab.updatevalue("PVI",lb,(float)fPower);
                             }
                         }
                         protocol->destroyValueData(container);
@@ -1485,7 +1518,10 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                                 float fPower = protocol->getValueAsFloat32(&container[n]);
 //                                printf(" %0.2f A \n", fPower);
                                 printf(" %0.2f A ", fPower);
-
+                                //BIRO
+                                char lb[5];
+                                sprintf(lb,"I_DC%u",index);
+                                openhab.updatevalue("PVI",lb,(float)fPower);
                             }
                         }
                         protocol->destroyValueData(container);
@@ -1972,6 +2008,9 @@ static void mainLoop(void)
         }
         // free frame buffer memory
         protocol.destroyFrameData(&frameBuffer);
+
+        //BIRO trigger cyclic send with internal timer
+        openhab.cyclicsend();
 
         // main loop sleep / cycle time before next request
     }
