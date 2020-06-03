@@ -269,11 +269,9 @@ bool GetConfig()
     FILE *fp;
         fp = fopen(e3dc_config.conffile, "r");
         if(!fp) {
-            sprintf(e3dc_config.conffile,"%s",CONF_PATH CONF_FILE);
-            if(!fp) {
             sprintf(e3dc_config.conffile,"%s",CONF_FILE);
             fp = fopen(CONF_FILE, "r");
-            }}
+            }
     if(fp) {
         stat(e3dc_config.conffile,&stats);
         tm_CONF_dt = *(&stats.st_mtime);
@@ -284,7 +282,7 @@ bool GetConfig()
         e3dc_config.ext2 = false;
         e3dc_config.ext3 = false;
         e3dc_config.ext7 = false;
-        sprintf(e3dc_config.logfile,"%slogfile",CONF_PATH);
+        sprintf(e3dc_config.logfile,"logfile");
         sprintf(e3dc_config.openWBhost,"%s",OPENWB);
         e3dc_config.debug = false;
         e3dc_config.wurzelzaehler = 0;
@@ -422,7 +420,7 @@ int LoadDataProcess(SRscpFrameBuffer * frameBuffer) {
     mm = t % (3600)/60;
     ss = t % (60);
 
-    if ((tE3DC % (24*3600)+12*3600)<t) {
+    if (((tE3DC % (24*3600))+12*3600)<t) {
 // Erstellen Statistik, Eintrag Logfile
         sprintf(Log,"Time %s U:%0.04f td:%0.04f yd:%0.04f WB%0.04f", strtok(asctime(ts),"\n"),fSavedtotal/3600000,fSavedtoday/3600000,fSavedyesderday/3600000,fSavedWB/3600000);
         WriteLog();
@@ -717,12 +715,27 @@ int LoadDataProcess(SRscpFrameBuffer * frameBuffer) {
                                 iE3DC_Req_Load = e3dc_config.maximumLadeleistung;
                             if (iPower_PV>0)  // Nur wenn die Sonne scheint
                             {
-                                if ((iE3DC_Req_Load == iE3DC_Req_Load_alt)&&(iE3DC_Req_Load>=(e3dc_config.maximumLadeleistung-1)))
-                                iLMStatus = 6;
+                                static int iLastReq;
+                                if (((iE3DC_Req_Load_alt) >=  (e3dc_config.maximumLadeleistung-1))&&(iE3DC_Req_Load>=(e3dc_config.maximumLadeleistung-1)))
+// Wenn der aktuelle Wert >= e3dc_config.maximumLadeleistung-1 ist
+// und der zuletzt angeforderte Werte auch >= e3dc_config.maximumLadeleistung-1
+// war, bleibt der Freilauf erhalten
+
+                                {   iLMStatus = 3;
+                                    if (iLastReq>0)
+                                    {sprintf(Log,"CTL %s %0.02f %i %i %0.02f",strtok(asctime(ts),"\n"),fBatt_SOC, iE3DC_Req_Load, iPower_Bat, fPower_Grid);
+                                        WriteLog();
+                                        iLastReq--;}
+                                        }
                                 else
-                                {iLMStatus = -6;
-// Wenn bereits auf Automatik geschaltet wurde, braucht eine Anforderung mit
-// maximalLadeleistung nicht wiederholt werden.
+                                {
+// testweise kein Freilauf
+                                    if (iE3DC_Req_Load == e3dc_config.maximumLadeleistung)
+                                    {iLMStatus = 3;
+                                        iE3DC_Req_Load_alt = iE3DC_Req_Load;
+                                    }else
+                                iLMStatus = -6;
+                                iLastReq = 10;
                                 sprintf(Log,"CTL %s %0.02f %i %i %0.02f",strtok(asctime(ts),"\n"),fBatt_SOC, iE3DC_Req_Load, iPower_Bat, fPower_Grid);
                                 WriteLog();}
                             } else
@@ -1036,7 +1049,7 @@ int createRequestExample(SRscpFrameBuffer * frameBuffer) {
         //    Power = Power*-1;
         protocol.createContainerValue(&PMContainer, TAG_EMS_REQ_SET_POWER);
         protocol.appendValue(&PMContainer, TAG_EMS_REQ_SET_POWER_MODE,Mode);
-        if (Mode > 0)
+//        if (Mode > 0)
             protocol.appendValue(&PMContainer, TAG_EMS_REQ_SET_POWER_VALUE,iE3DC_Req_Load);
         // append sub-container to root container
         protocol.appendValue(&rootValue, PMContainer);
@@ -1203,7 +1216,8 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
     if(response->dataType == RSCP::eTypeError) {
         // handle error for example access denied errors
         uint32_t uiErrorCode = protocol->getValueAsUInt32(response);
-        printf("Tag 0x%08X received error code %u.\n", response->tag, uiErrorCode);
+        sprintf(Log,"ERR Tag 0x%08X received error code %u.\n", response->tag, uiErrorCode);
+        WriteLog();
         return -1;
     }
 
