@@ -1080,6 +1080,11 @@ int createRequestExample(SRscpFrameBuffer * frameBuffer) {
         protocol.appendValue(&PMContainer, TAG_PM_REQ_VOLTAGE_L1);
         protocol.appendValue(&PMContainer, TAG_PM_REQ_VOLTAGE_L2);
         protocol.appendValue(&PMContainer, TAG_PM_REQ_VOLTAGE_L3);
+        //BIRO Start
+        protocol.appendValue(&PMContainer, TAG_PM_REQ_ENERGY_L1);
+        protocol.appendValue(&PMContainer, TAG_PM_REQ_ENERGY_L2);
+        protocol.appendValue(&PMContainer, TAG_PM_REQ_ENERGY_L3);
+        //BIRO Ende
         // append sub-container to root container
         protocol.appendValue(&rootValue, PMContainer);
         // free memory of sub-container as it is now copied to rootValue
@@ -1444,6 +1449,23 @@ int handleResponseValue(RscpProtocol *protocol, SRscpValue *response)
                         openhab.updatevalue("PM","U_L3",(float)fPower);
                         break;
                     }
+                    //BIRO Start
+                    case TAG_PM_ENERGY_L1: {              // response for TAG_PM_REQ_ENERGY_L1
+                        float fPower = protocol->getValueAsFloat32(&PMData[i]);
+                        openhab.updatevalue("PM","E_L1",(float)fPower);
+                        break;
+                    }
+                    case TAG_PM_ENERGY_L2: {              // response for TAG_PM_REQ_ENERGY_L2
+                        float fPower = protocol->getValueAsFloat32(&PMData[i]);
+                        openhab.updatevalue("PM","E_L2",(float)fPower);
+                        break;
+                    }
+                    case TAG_PM_ENERGY_L3: {              // response for TAG_PM_REQ_ENERGY_L3
+                        float fPower = protocol->getValueAsFloat32(&PMData[i]);
+                        openhab.updatevalue("PM","E_L3",(float)fPower);
+                        break;
+                    }
+                    //BIRO Ende
                         // ...
                     default:
                         // default behaviour
